@@ -95,9 +95,58 @@
                 </div>
             </div>
 
-            <p class="text-xs text-gray-400 italic text-center">
-                *Catatan: Kelebihan uang dari hasil pembulatan iuran otomatis akan masuk ke kas cadangan masing-masing kelompok untuk biaya operasional.
-            </p>
+            <!-- KALKULATOR SIMULASI (FITUR BARU) -->
+            <div class="bg-white border-2 border-dashed border-emerald-300 rounded-2xl p-5 mt-4 shadow-sm relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 opacity-10 text-6xl">🧮</div>
+                <h3 class="font-bold text-emerald-900 flex items-center gap-2 mb-2 relative z-10">
+                    🧮 Kalkulator Simulasi Susulan
+                </h3>
+                <p class="text-xs text-gray-500 mb-4 relative z-10">
+                    Ada kendala dan terlewat setoran di bulan sebelumnya? Jangan khawatir! Hitung ulang kewajiban setoranmu di bulan-bulan tersisa agar target akhir tetap aman tercapai.
+                </p>
+                
+                <div class="space-y-4 text-sm relative z-10">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Input Grup -->
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-1">Grup Pilihanmu:</label>
+                            <select id="calc-group" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-gray-50">
+                                <option value="4800000">Grup 1 (Target: Rp 4.800.000)</option>
+                                <option value="3571428">Grup 2 (Target: Rp 3.571.428)</option>
+                            </select>
+                        </div>
+                        <!-- Input Sisa Bulan -->
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-1">Sisa Bulan Menabung:</label>
+                            <input type="number" id="calc-months" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-gray-50" placeholder="Contoh: 8 (dari total 12 bulan)" min="1" max="12">
+                        </div>
+                    </div>
+                    
+                    <!-- Input Nominal -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Total Saldo yang Sudah Disetor (Rp):</label>
+                        <input type="number" id="calc-paid" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-gray-50" placeholder="Contoh: 1260000" min="0">
+                    </div>
+                    
+                    <button onclick="calculateSavings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm">
+                        Hitung Ulang Setoranku
+                    </button>
+                    
+                    <!-- Area Hasil (Tersembunyi secara default) -->
+                    <div id="calc-result" class="hidden mt-4 bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
+                        <div class="grid grid-cols-2 gap-4 divide-x divide-emerald-200">
+                            <div>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-wide font-semibold mb-1">Sisa Target Uang</p>
+                                <p id="res-remaining" class="font-bold text-gray-800 text-sm">Rp 0</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-wide font-semibold mb-1">Setoran Wajib Selanjutnya</p>
+                                <p id="res-monthly" class="font-extrabold text-emerald-600 text-lg">Rp 0 <span class="text-[10px] font-normal text-gray-500">/ bln</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Divider Estetik -->
             <div class="flex items-center justify-center space-x-3 my-6 opacity-60">
@@ -214,5 +263,45 @@
 
     </div>
 
+    <!-- Script Logika Kalkulator Simulasi -->
+    <script>
+        function calculateSavings() {
+            // Ambil nilai dari input form
+            const targetTotal = parseFloat(document.getElementById('calc-group').value);
+            let paidTotal = parseFloat(document.getElementById('calc-paid').value);
+            const remainingMonths = parseInt(document.getElementById('calc-months').value);
+            
+            // Validasi input
+            if (isNaN(paidTotal)) paidTotal = 0;
+            if (isNaN(remainingMonths) || remainingMonths <= 0) {
+                alert('Tolong masukkan sisa bulan menabung dengan benar (contoh: 8).');
+                return;
+            }
+
+            // Hitung sisa target uang
+            let remainingTarget = targetTotal - paidTotal;
+            if (remainingTarget < 0) remainingTarget = 0; // Mencegah hasil minus jika sudah lunas
+
+            // Hitung setoran per bulan
+            let monthlyPayment = remainingTarget / remainingMonths;
+            
+            // Fungsi untuk format Rupiah
+            const formatRupiah = (angka) => {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(angka);
+            };
+
+            // Tampilkan hasil ke layar
+            document.getElementById('res-remaining').innerText = formatRupiah(remainingTarget);
+            document.getElementById('res-monthly').innerHTML = formatRupiah(Math.ceil(monthlyPayment)) + ' <span class="text-[10px] font-normal text-gray-500">/ bln</span>';
+            
+            // Tampilkan kotak hasil yang sebelumnya disembunyikan
+            document.getElementById('calc-result').classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
